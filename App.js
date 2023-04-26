@@ -7,16 +7,18 @@ import {
   Text,
   ScrollView,
   Image,
+  Platform,
 } from "react-native";
-import Video from "react-native-video";
+import { Video, ResizeMode } from "expo-av";
 
 export default function App() {
   const video = useRef(null);
-  const [paused, setPaused] = useState(true);
+  const video2 = useRef(null);
+  const [opened, setOpened] = useState(false);
 
-  const onPlay = () => {
-    setPaused(false);
-    setTimeout(() => video.current.presentFullscreenPlayer(), 50);
+  const onPlay = async () => {
+    await video.current.presentFullscreenPlayer();
+    setOpened(true);
   };
 
   return (
@@ -29,28 +31,20 @@ export default function App() {
           <Text style={styles.subtile}>Video with player icon</Text>
         </View>
         <View style={styles.videoPlayer}>
-          {paused ? (
-            <Image
-              style={styles.videoPlayer}
-              source={require("./assets/cover-image.png")}
-            />
-          ) : (
-            <Video
-              ref={video}
-              source={{
-                uri: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-              }}
-              resizeMode={"cover"}
-              style={styles.backgroundVideo}
-              onFullscreenPlayerWillDismiss={() => {
-                setPaused(true);
-              }}
-              muted
-              fullscreen
-              paused={paused}
-            />
-          )}
-
+          <Image
+            style={styles.videoPlayer}
+            source={require("./assets/cover-image.png")}
+          />
+          <Video
+            ref={video}
+            source={{
+              uri: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            }}
+            resizeMode={ResizeMode.COVER}
+            style={styles.backgroundVideo1}
+            isMuted
+            shouldPlay={opened}
+          />
           <TouchableOpacity onPress={onPlay} style={styles.iconContainer}>
             <Icon name="play-circle-fill" color="white" size={60} />
           </TouchableOpacity>
@@ -60,18 +54,16 @@ export default function App() {
         </View>
         <View style={styles.videoPlayer}>
           <Video
-            ref={video}
+            ref={video2}
             source={{
               uri: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
             }}
-            fullscreen
-            repeat
-            resizeMode={"cover"}
+            isLooping
+            resizeMode={ResizeMode.COVER}
             style={styles.backgroundVideo}
             rate={1}
-            paused={false}
-            muted
-            playInBackground={true}
+            isMuted
+            shouldPlay
           />
           <View style={styles.videoTitleContainer}>
             <Text style={styles.videoTitle}>Stage 1: Baseline</Text>
@@ -92,7 +84,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     marginBottom: 20,
-    marginTop: 80,
+    marginTop: Platform.OS === "ios" ? 80 : 20,
   },
   subtile: {
     fontSize: 20,
@@ -109,11 +101,14 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
   },
-
   videoPlayer: {
     position: "relative",
     width: "100%",
     height: 500,
+  },
+  backgroundVideo1: {
+    height: 0,
+    width: 0,
   },
   backgroundVideo: {
     height: 500,
